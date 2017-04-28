@@ -2,9 +2,9 @@ import random
 # number of simulations to run
 iterations = 1000
 # number of players in a tournament
-players = 20
+players = 19
 # rounds before the top cut
-rounds = 8
+rounds = 6
 #top cut size
 cut = 8
 
@@ -12,15 +12,21 @@ cut = 8
 # percent of participants using an archetype.  Must add up to 100
 meta = []
 # planetman percent of playerbase
-meta += [50]
+meta += [34]
 # cc percent of playerbase
-meta += [20]
+meta += [33]
 # atk10 percent of playerbase
-meta += [30]
+meta += [33]
 bye = False
+# Define Matchups here.  Number is the percentile chance of the first archetype beating the second.
+Planetman_vs_CC = 80
+Planetman_vs_Attack10 = 40
+CC_vs_Attack10 = 80
 
-# win rates of matchups.  1 = planetman, 2 = cc, 3 = atk10
-win_rates = {1: {1: 50, 2: 80, 3: 40}, 2: {1: 20, 2: 50, 3: 80}, 3: {1: 60, 2: 0, 3: 50}}
+Mirror_Match = 50
+win_rates = {1: {1: Mirror_Match, 2: Planetman_vs_CC, 3: Planetman_vs_Attack10},
+             2: {1: (100-Planetman_vs_CC), 2: Mirror_Match, 3: CC_vs_Attack10},
+             3: {1: (100-Planetman_vs_Attack10), 2: Mirror_Match, 3: (100-CC_vs_Attack10)}}
 
 if players % 2 == 1:
 	bye = True
@@ -40,7 +46,8 @@ def matchups(players, win_rates):
 	for p in range(len(players))[0:-1:2]:
 		p1 = players[p]
 		p2 = players[p+1]
-		if roll() < win_rates[p1[0]][p2[0]]:
+		chance = roll()
+		if chance < win_rates[p1[0]][p2[0]]:
 			p1[1] += 1
 		else:
 			p2[1] += 1
@@ -63,7 +70,7 @@ def top_cut(players, meta, win_rates, top_cut):
 
 	for r in range(rounds):
 		matchups(history, win_rates)
-	return history[:top_cut]
+	return sorted(history, key=get_record, reverse=True)[:top_cut]
 
 results = []
 for c in range(cut):
